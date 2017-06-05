@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd { background: #eee; }
+    </style>
+  </head>
+
+  <body>
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" value="Write text here" autocomplete="off" /><button>Send</button>
+    </form>
+      <script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    var socket = io();
+    ///////////////////////////
+    var clientUserName = prompt("Enter Nickname: ");
+    socket.emit('newUserName', clientUserName);
+     socket.on('newUser', fction(msg){       
+    $('#messages').append($('<li>').text("New User " + msg));
+  });
+
+    
+    socket.on('userDisconnect', function(msg){
+        $('#messages').append($('<li>').text(msg));
+    })
+   /////////////////////////////// 
+  $('form').submit(function(){
+    socket.emit('chat message', clientUserName + ": " + $('#m').val());
+    $('#m').val('Write text here');
+    socket.emit('userTypingCompleteCall', clientUserName);
+    return false;
+  });
+  
+    $( '#m' ).focusin(function() {
+        if(document.getElementById('m').value === "Write text here")
+            document.getElementById('m').value = "";
+        socket.emit('userTypingCall', clientUserName);
+});
+    ////////////////////////////
+    ////figure out how to filter out "clientUserName is typing"
+   socket.on('userTypingComplete', function(msg){
+       $("."+msg).remove();
+    });
+    ////////////////////////
+    socket.on('userTyping', function(msg){
+       $('#messages').append($('<li>').text(msg + " is typing"));
+      $("li").last().addClass(msg)
+      $("li").last().css("color", "blue");
+    });
+    
+    $( '#m' ).focusout(function() {
+  if(document.getElementById('m').value === "")
+      document.getElementById('m').value = "Write text here";
+        $("li").last().remove();
+});
+    
+  socket.on('chat message', function(msg){
+    $('#messages').append($('<li>').text(msg));
+  });
+</script>
+  </body>
+</html>
